@@ -2,36 +2,50 @@ let articles = localStorage.getItem("shoppingCart");
 articles = JSON.parse(articles);
 let price = 0;
 
-articles.forEach(function(cart, idx, array){
-    const articleId = cart.id;
-    fetch("http://localhost:3000/api/products/"+articleId).then(function(res) {
-        if (res.ok) {
-            return res.json();
-        }
-    })
-    .then(function(item) {
-        showArticle(item, cart.color, cart.quantity);
-        price += item.price * cart.quantity;
-        
-        if (idx === array.length - 1){ 
-            const sumPrice = document.getElementById('totalPrice');
-            sumPrice.textContent = price;
+function createProducts()
+{
+    articles.forEach(function(cart, idx, array){
+        const articleId = cart.id;
+        fetch("http://localhost:3000/api/products/"+articleId).then(function(res) {
+            if (res.ok) {
+                return res.json();
+            }
+        })
+        .then(function(item) {
+            showArticle(item, cart.color, cart.quantity);
+            price += item.price * cart.quantity;
 
-        // Le clic Supprimer
-        let button = document.getElementsByClassName("deleteItem");    // On récupère l'élément sur lequel on veut détecter le clic
-        console.log(button);
-        for (let btn in button) {
-            btn.addEventListener('click', function(event) {          // On écoute l'événement click
-                var articleid = event.target.closest('article').dataset.id;
-                console.log(articleid+'test');
-            });
-        }
-        }
-    })
-    .catch(function(err) {
-        // Une erreur est survenue  
+            if (idx === array.length - 1){ 
+                const sumPrice = document.getElementById('totalPrice');
+                sumPrice.textContent = price;
+            }
+        })
+        .catch(function(err) {
+            // Une erreur est survenue  
+        });
     });
-});
+}
+
+async function loadCart()
+{
+    const products = await createProducts();
+    deleteEvents();
+}
+
+function deleteEvents()
+{
+    // Le clic Supprimer
+    const button = document.querySelectorAll(".deleteItem");    // On récupère l'élément sur lequel on veut détecter le clic
+    for (let btn in button) {
+        btn.addEventListener('click', function(event) {          // On écoute l'événement click
+            event.preventDefault();
+            var articleid = event.target.closest('article').dataset.id;
+            console.log(articleid);
+        });
+    }
+}
+
+loadCart();
 
 const sumQuantity = document.getElementById('totalQuantity');
 sumQuantity.textContent = totalQuantity(articles);

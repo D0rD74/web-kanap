@@ -3,7 +3,7 @@ articles = JSON.parse(articles);
 let price = 0;
 
 function createProducts()
-{
+{ 
     articles.forEach(function(cart, idx, array){
         const articleId = cart.id;
         fetch("http://localhost:3000/api/products/"+articleId).then(function(res) {

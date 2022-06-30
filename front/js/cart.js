@@ -1,65 +1,66 @@
 let articles = localStorage.getItem("shoppingCart");
 articles = JSON.parse(articles);
 let price = 0;
+let qte = 0;
 
-function createProducts()
+async function createProducts()
 { 
-    articles.forEach(function(cart, idx, array){
-        const articleId = cart.id;
-        fetch("http://localhost:3000/api/products/"+articleId).then(function(res) {
-            if (res.ok) {
-                return res.json();
-            }
-        })
-        .then(function(item) {
-            showArticle(item, cart.color, cart.quantity);
-            price += item.price * cart.quantity;
-
-            if (idx === array.length - 1){ 
-                const sumPrice = document.getElementById('totalPrice');
-                sumPrice.textContent = price;
-            }
-        })
-        .catch(function(err) {
-            // Une erreur est survenue  
-        });
-    });
+    for (let art of articles) {
+        const articleId = art.id;
+        const promise = await fetch("http://localhost:3000/api/products/"+articleId);
+        const item = await promise.json();
+        showArticle(item, art.color, art.quantity);
+        price += item.price * art.quantity;
+        qte += parseInt(art.quantity);
+    }
+    const sumPrice = document.getElementById('totalPrice');
+    sumPrice.textContent = price;
+    const sumQuantity = document.getElementById('totalQuantity');
+    sumQuantity.textContent = qte;
 }
 
 async function loadCart()
 {
-    const products = await createProducts();
+    await createProducts();
     deleteEvents();
+    editQuantity();
 }
 
 function deleteEvents()
 {
-    // Le clic Supprimer
-    const button = document.querySelectorAll(".deleteItem");    // On récupère l'élément sur lequel on veut détecter le clic
-    for (let btn in button) {
+    // Le bouton Supprimer
+    const delButton = document.querySelectorAll(".deleteItem");    // On récupère l'élément sur lequel on veut détecter le clic
+    for (let btn of delButton) {
         btn.addEventListener('click', function(event) {          // On écoute l'événement click
             event.preventDefault();
-            var articleid = event.target.closest('article').dataset.id;
-            console.log(articleid);
+            let articleid = event.target.closest('article').dataset.id;
+            let articleColor = event.target.closest('article').dataset.color;
+            let index = getCurrent(articleid, articleColor);
+            articles.splice(index, 1);
+            localStorage.setItem("shoppingCart", JSON.stringify(articles));
+        });
+    }
+}
+
+function editQuantity()
+{
+    // Le bouton Modifier
+    const editButton = document.querySelectorAll(".itemQuantity");    // On récupère l'élément sur lequel on veut détecter le changement
+    for (let btn of editButton) {
+        btn.addEventListener('change', function(event) {          // On écoute l'événement change
+            event.preventDefault();
+            articleQuantity = event.target.value;
+            let articleid = event.target.closest('article').dataset.id;
+            let articleColor = event.target.closest('article').dataset.color;
+            let index = getCurrent(articleid, articleColor);
+            articles[index]['quantity'] = articleQuantity;
+            localStorage.setItem("shoppingCart", JSON.stringify(articles));
+            // est ce que je recharge tout le dom des articles avec le nouveau localstorage ou est ce que je recalcule manuellement la quantité et le prix total ici ?
         });
     }
 }
 
 loadCart();
-
-const sumQuantity = document.getElementById('totalQuantity');
-sumQuantity.textContent = totalQuantity(articles);
-
-
-function totalQuantity(articles)
-{
-    const sumQuantity = articles.reduce(
-        (previousValue, currentValue) => Number(previousValue) + Number(currentValue.quantity),
-        0
-      );    
-
-    return sumQuantity;
-}
 
 function showArticle(item, color, quantity)
 {
@@ -142,4 +143,5 @@ function store(cart)
 function getCurrent(article_id, color)
 {
     let index = articles.findIndex((item) => item.id === article_id && item.color === color);
+    return index;
 }

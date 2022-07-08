@@ -5,6 +5,8 @@ let qte = 0;
 
 async function createProducts()
 { 
+    let price = 0;
+    let qte = 0;
     for (let art of articles) {
         const articleId = art.id;
         const promise = await fetch("http://localhost:3000/api/products/"+articleId);
@@ -38,6 +40,8 @@ function deleteEvents()
             let index = getCurrent(articleid, articleColor);
             articles.splice(index, 1);
             localStorage.setItem("shoppingCart", JSON.stringify(articles));
+            document.getElementById('cart__items').innerHTML = '';
+            loadCart();
         });
     }
 }
@@ -55,7 +59,8 @@ function editQuantity()
             let index = getCurrent(articleid, articleColor);
             articles[index]['quantity'] = articleQuantity;
             localStorage.setItem("shoppingCart", JSON.stringify(articles));
-            // est ce que je recharge tout le dom des articles avec le nouveau localstorage ou est ce que je recalcule manuellement la quantité et le prix total ici ?
+            document.getElementById('cart__items').innerHTML = '';
+            loadCart();
         });
     }
 }

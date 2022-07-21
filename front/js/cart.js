@@ -28,6 +28,80 @@ async function loadCart()
     editQuantity();
 }
 
+// Le bouton Commander
+const form = document.querySelector(".cart__order__form");    // On récupère l'élément sur lequel on veut détecter le submit
+form.addEventListener('submit', function(event) {          // On écoute l'événement submit
+    event.preventDefault();
+    
+    let firstName = document.getElementById("firstName");
+    let lastName = document.getElementById("lastName");
+    let address = document.getElementById("address");
+    let city = document.getElementById("city");
+    let email = document.getElementById("email");
+
+    let inputs = {
+        "firstName" : document.getElementById("firstName").value,
+        "lastName" : document.getElementById("lastName").value,
+        "address" : document.getElementById("address").value,
+        "city" : document.getElementById("city").value,
+        "email" : document.getElementById("email").value
+    }
+
+    let err = 0;
+
+    if(firstName.value.length < 3)
+    {
+        document.getElementById('firstNameErrorMsg').textContent = 'Votre prénom doit faire au moins 3 caractères.';
+        err++;
+    }    
+    
+    if(firstName.value.length > 20)
+    {
+        document.getElementById('firstNameErrorMsg').textContent = 'Votre prénom ne doit pas dépasser 20 caractères.';
+        err++;
+    }  
+    
+    if (!/^[a-zA-Z]*$/g.test(firstName.value))
+    {
+        document.getElementById('firstNameErrorMsg').textContent = 'Votre prénom ne doit pas contenir de chiffres.';
+        err++;
+    }
+
+    if(lastName.value.length < 3)
+    {
+        document.getElementById('lastNameErrorMsg').textContent = 'Votre nom doit faire au moins 3 caractères.';
+        err++;
+    }    
+    
+    if(lastName.value.length > 20)
+    {
+        document.getElementById('lastNameErrorMsg').textContent = 'Votre nom ne doit pas dépasser 20 caractères.';
+        err++;
+    }   
+
+    if(err == 0)
+    {
+        let articleIds = [];
+        articles.forEach(function(article) {
+            articleIds.push(article.id);
+        });
+
+        fetch("http://localhost:3000/api/order", {
+            method: "POST",
+            headers: {
+              'Accept': 'application/json', 
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({contact:inputs, products:articleIds})
+          })
+          .then(function(res) {
+            if (res.ok) {
+              return res.json();
+            }
+          })
+    }
+});
+
 function deleteEvents()
 {
     // Le bouton Supprimer
@@ -41,7 +115,7 @@ function deleteEvents()
             articles.splice(index, 1);
             localStorage.setItem("shoppingCart", JSON.stringify(articles));
             document.getElementById('cart__items').innerHTML = '';
-            loadCart();
+            window.location.href = window.location.href;
         });
     }
 }
@@ -59,8 +133,7 @@ function editQuantity()
             let index = getCurrent(articleid, articleColor);
             articles[index]['quantity'] = articleQuantity;
             localStorage.setItem("shoppingCart", JSON.stringify(articles));
-            document.getElementById('cart__items').innerHTML = '';
-            loadCart();
+            window.location.href = window.location.href;
         });
     }
 }

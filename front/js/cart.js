@@ -32,7 +32,6 @@ async function loadCart()
 const form = document.querySelector(".cart__order__form");    // On récupère l'élément sur lequel on veut détecter le submit
 form.addEventListener('submit', function(event) {          // On écoute l'événement submit
     event.preventDefault();
-    
     let firstName = document.getElementById("firstName");
     let lastName = document.getElementById("lastName");
     let address = document.getElementById("address");
@@ -77,7 +76,37 @@ form.addEventListener('submit', function(event) {          // On écoute l'évé
     {
         document.getElementById('lastNameErrorMsg').textContent = 'Votre nom ne doit pas dépasser 20 caractères.';
         err++;
-    }   
+    } 
+    
+    if (!/^[a-zA-Z]*$/g.test(lastName.value))
+    {
+        document.getElementById('lastNameErrorMsg').textContent = 'Votre nom ne doit pas contenir de chiffres.';
+        err++;
+    }
+
+    if(address.value.length > 80)
+    {
+        document.getElementById('addressErrorMsg').textContent = 'Votre adresse ne doit pas dépasser 80 caractères.';
+        err++;
+    } 
+
+    if(city.value.length < 3)
+    {
+        document.getElementById('cityErrorMsg').textContent = 'La ville doit faire au moins 3 caractères.';
+        err++;
+    }    
+    
+    if(city.value.length > 20)
+    {
+        document.getElementById('cityErrorMsg').textContent = 'La ville ne doit pas dépasser 20 caractères.';
+        err++;
+    } 
+
+    if(!/^[a-zA-Z]*$/g.test(city.value))
+    {
+        document.getElementById('cityErrorMsg').textContent = 'La ville ne doit pas contenir de chiffres.';
+        err++;
+    }
 
     if(err == 0)
     {
@@ -86,7 +115,7 @@ form.addEventListener('submit', function(event) {          // On écoute l'évé
             articleIds.push(article.id);
         });
 
-        fetch("http://localhost:3000/api/order", {
+        fetch("http://localhost:3000/api/products/order", {
             method: "POST",
             headers: {
               'Accept': 'application/json', 
@@ -98,6 +127,9 @@ form.addEventListener('submit', function(event) {          // On écoute l'évé
             if (res.ok) {
               return res.json();
             }
+          })
+          .then(function(order) {
+            window.location.href = "confirmation.html?orderId="+order.orderId;
           })
     }
 });
